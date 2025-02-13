@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <string.h>
+#include <cstring>
 #include <cctype>
 #include <algorithm>
 #include <string>
@@ -25,20 +25,6 @@ int countWordsInLine(const char *line) {
         }
     }
     return count;
-}
-
-void checkID(const char *charWord, string word) {
-    bool allGood = true;
-    for (int i = 1; i < word.length(); i++) {
-        if (!isalpha(word[i]) && !isdigit(word[i])) {
-            cout << "Invalid Identifier Word at line " << lineCount  << ": " << word << endl;
-            i = word.length();
-            allGood = false;
-        }
-    }
-    if (allGood) {
-        countID++;
-    }
 }
 
 void checkSP(const char *charWord, const string &word) {
@@ -72,12 +58,36 @@ void checkKW(string word) {
         }
     }
 }
+bool isKeyWord(string word) {
+    transform(word.begin(), word.end(),word.begin(), ::tolower);
+
+    for (int i = 0; i < 15; i++) {
+        if (keyWords[i] == word) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void checkID(const char *charWord, const string &word) {
+    bool allGood = true;
+    for (int i = 1; i < word.length(); i++) {
+        if (!isalpha(word[i]) && !isdigit(word[i])) {
+            cout << "Invalid Identifier Word at line " << lineCount  << ": " << word << endl;
+            i = word.length();
+            allGood = false;
+        }
+    }
+    if (isKeyWord(word)) {
+        allGood = false;
+    }
+    if (allGood) {
+        countID++;
+    }
+}
 
 void classifyWords(const char *line, const bool *kwFlag, const bool *spFlag, const bool *idFlag) {
-    const int wordCount = countWordsInLine(line);
-    string words[wordCount];
-
-    string currWord = "";
+    string currWord;
     int currCount = 0;
     for (int i = 0; i < strlen(line); i++) {
         if (line[i] == ' ') {
@@ -92,7 +102,6 @@ void classifyWords(const char *line, const bool *kwFlag, const bool *spFlag, con
                 checkKW(currWord);
             }
 
-            words[currCount] = currWord;
             currCount++;
             currWord = "";
         } else if (i == strlen(line) - 1) {
@@ -107,7 +116,6 @@ void classifyWords(const char *line, const bool *kwFlag, const bool *spFlag, con
             if (*kwFlag) {
                 checkKW(currWord);
             }
-            words[currCount] = currWord;
             currCount++;
             currWord = "";
         } else {
